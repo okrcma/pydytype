@@ -1,4 +1,4 @@
-"""Module for parsing type annotations from a module source code."""
+"""Module for parsing type annotations from module source code."""
 
 from __future__ import annotations
 import ast
@@ -8,32 +8,24 @@ from typing import Callable, Any, Optional
 # TODO returns, classes, for block, ...
 
 
-class ModuleTypes:
-    """Stores type annotations parsed from a single module.
+def parse_module(filename: str) -> list[dict[str, str]]:
+    """Parse module code and get variable type annotations for each line.
 
-    Attributes:
-        full_path: Full path to the modules .py file.
-        types: The parsed type annotations as strings.
+    The result is a list of dicts. Indices of the list are equal to line numbers,
+        index 0 contains value None. The keys in the dicts are variable names, the
+        values are type annotations as strings.
+
+    Args:
+        filename: Path to the module.
+
+    Returns:
+        Type annotations for each line.
 
     """
-
-    def __init__(self, full_path: str, types: list[dict[str, str]]):
-        """Initialize."""
-        self.full_path = full_path
-        self.types = types
-
-    @classmethod
-    def parse_module(cls, full_path: str) -> ModuleTypes:
-        """Parse type annotations from a module."""
-        types_store = ModuleTypesIntermediateStore()
-        parser = ModuleTypesParser(types_store)
-        parser.parse(full_path)
-        types = types_store.get_types_by_line()
-        return cls(full_path, types)
-
-    def get_type_str(self, line: int, varname: str) -> str:
-        """Get type for a line number and a variable name."""
-        return self.types[line].get(varname)
+    types_store = ModuleTypesIntermediateStore()
+    parser = ModuleTypesParser(types_store)
+    parser.parse(filename)
+    return types_store.get_types_by_line()
 
 
 class ModuleTypesParser(ast.NodeVisitor):
@@ -303,6 +295,6 @@ class ModuleTypesIntermediateStore:
 
 
 if __name__ == "__main__":
-    types = ModuleTypes.parse_module(__file__).types
+    types = parse_module(__file__)
     for line, type_dict in enumerate(types):
         print(line, type_dict)
