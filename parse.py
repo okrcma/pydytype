@@ -8,28 +8,40 @@ from typing import Callable, Any, Optional
 # TODO returns, classes, for block, ...
 
 
-def parse_module(filename: str) -> list[dict[str, str]]:
-    """Parse module code and get variable type annotations for each line.
+class ModuleTypes:
+    """Stores type annotations parsed from a single module.
 
-    Args:
-        filename: Path to the module.
-
-    Returns:
-        Type annotations for each line.
+    Attributes:
+        full_path: Full path to the modules .py file.
+        types: The parsed type annotations as strings.
 
     """
-    types_store = ModuleTypesIntermediateStore()
-    parser = ModuleTypesParser(types_store)
-    parser.parse(filename)
-    return types_store.get_types_by_line()
+
+    def __init__(self, full_path: str, types: list[dict[str, str]]):
+        """Initialize."""
+        self.full_path = full_path
+        self.types = types
+
+    @classmethod
+    def parse_module(cls, full_path: str) -> ModuleTypes:
+        """Parse type annotations from a module."""
+        types_store = ModuleTypesIntermediateStore()
+        parser = ModuleTypesParser(types_store)
+        parser.parse(full_path)
+        types = types_store.get_types_by_line()
+        return cls(full_path, types)
+
+    def get_type_str(self, line: int, varname: str) -> str:
+        """Get type for a line number and a variable name."""
+        return self.types[line].get(varname)
 
 
 class ModuleTypesParser(ast.NodeVisitor):
     """Parses type annotations from module source code.
 
-    Each visit_* method must return call either generic_visit or generic_leave method
-        to ensure the leave methods are called properly. Method generic_visit should
-        be called if inner nodes should be visited, and method generic_leave should
+    Each visit_* method must return-call either generic_visit or generic_leave method
+        to ensure the leave methods are called properly. Method generic_visit must
+        be called if inner nodes should be visited, and method generic_leave must
         be called if inner nodes should be skipped.
 
     """
@@ -291,6 +303,6 @@ class ModuleTypesIntermediateStore:
 
 
 if __name__ == "__main__":
-    types = parse_module(__file__)
+    types = ModuleTypes.parse_module(__file__).types
     for line, type_dict in enumerate(types):
         print(line, type_dict)
