@@ -187,12 +187,17 @@ class ModuleTypesIntermediateStore:
         def get_types_by_line_list(self) -> list[Optional[dict[str, str]]]:
             """Compile all the type annotations to a line-by-line list.
 
-            Includes annotations from subscopes.
+            Includes annotations from subscopes. Does not include variables without
+                a type annotation.
 
             """
             types_list = [None] * (self.line_end + 1)
             for line, data in self._get_types_by_line_dict().items():
-                types_list[line] = data
+                types_list[line] = {
+                    varname: vartype
+                    for varname, vartype in data.items()
+                    if vartype is not None
+                }
             return types_list
 
         def _get_types_by_line_dict(self) -> dict[int, dict[str, str]]:

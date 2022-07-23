@@ -27,6 +27,10 @@ class Result:
     type_is_correct: bool
 
 
+class TypeCheckError(Exception):
+    pass
+
+
 class TraceTypeChecker:
     """Checks types while the program is running.
 
@@ -99,9 +103,28 @@ def check_type(varvalue: Any, vartype: Any) -> bool:
     """Check whether the value fits the type."""
     origin = typing.get_origin(vartype)
     if origin is not None:
+        if origin in _type_checker_map:
+            return _type_checker_map[origin](varvalue, vartype)
         return None  # TODO
     return isinstance(varvalue, vartype)
 
+
+def _check_type_list(varvalue, vartype):
+    if not isinstance(varvalue, list):
+        return False
+
+    args = vartype.__args__
+    if len(args) != 1:
+        raise TypeCheckError(f"Type has incorrect number of args ({args}).")
+    inner_type = args[0]
+    for inner_value in varvalue:
+        result = check_type(inner_value, inner_type)
+        if not result:
+            return result
+    return True
+
+
+_type_checker_map = {list: _check_type_list}
 
 if __name__ == "__main__":
     import runpy
