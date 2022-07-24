@@ -11,7 +11,8 @@ import typing
 
 from dataclasses import dataclass
 from typing import Any
-from parse import parse_module
+
+from pydytype.parse import parse_module
 
 
 @dataclass
@@ -53,9 +54,14 @@ class TraceTypeChecker:
         self._types: dict[str, list[dict[str, str]]] = {}
 
     def start_trace(self):
-        """Set start tracing."""
+        """Start tracing."""
         threading.settrace(self._trace)
         sys.settrace(self._trace)
+
+    def stop_trace(self):
+        """Stop tracing."""
+        threading.settrace(None)
+        sys.settrace(None)
 
     def _trace(self, frame: types.FrameType, event: str, arg: Any):
         """Main trace method."""

@@ -1,6 +1,7 @@
 """Module for parsing type annotations from module source code."""
 
 from __future__ import annotations
+
 import ast
 from typing import Callable, Any, Optional
 
@@ -60,7 +61,7 @@ class ModuleTypesParser(ast.NodeVisitor):
             source = f.read()
 
         node = ast.parse(source, filename)
-        line_end = len(source.splitlines())
+        line_end = max(1, len(source.splitlines()))
         self.types_store.start_scope(line_start=1, line_end=line_end)
         self.visit(node)
         self.types_store.end_scope()
