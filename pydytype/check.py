@@ -111,7 +111,10 @@ def check_type(varvalue: Any, vartype: Any) -> bool:
     if origin is not None:
         if origin in _type_checker_map:
             return _type_checker_map[origin](varvalue, vartype)
-        return None  # TODO
+        raise TypeCheckError(
+            f"Didn't check type for varvalue: {varvalue}, vartype:{vartype}, "
+            f"origin: {origin}."
+        )
     return isinstance(varvalue, vartype)
 
 
@@ -130,7 +133,22 @@ def _check_type_list(varvalue, vartype):
     return True
 
 
-_type_checker_map = {list: _check_type_list}
+def _check_type_set(varvalue, vartype):
+    if not isinstance(varvalue, set):
+        return False
+
+    args = vartype.__args__
+    if len(args) != 1:
+        raise TypeCheckError(f"Type has incorrect number of args ({args}).")
+    inner_type = args[0]
+    for inner_value in varvalue:
+        result = check_type(inner_value, inner_type)
+        if not result:
+            return result
+    return True
+
+
+_type_checker_map = {list: _check_type_list, set: _check_type_set}
 
 if __name__ == "__main__":
     import runpy

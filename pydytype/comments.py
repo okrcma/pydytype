@@ -16,8 +16,11 @@ def parse_module_comments(filename: str) -> dict[int, str]:
     return comments
 
 
-def parse_command_comment(comment: str) -> str | None:
+def parse_command_comment(comment: str | None) -> str | None:
     """Parse comment string to see if it's a pydytype command and return the command."""
+    if comment is None:
+        return None
+
     pattern = "^#\\s*pydytype:\\s*(.+)$"
     match = re.match(pattern, comment)
     if match is not None:

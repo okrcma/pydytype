@@ -15,11 +15,12 @@ def fail_nested_list(a: list[list[int]]):  # pydytype: test_assert_fail
 
 
 if __name__ == "__main__":
+    pass_list([])
     pass_list(["txt"])
 
     fail_list(1)
     fail_list([1, 2, "3", 4])
 
-    pass_nested_list([[[1.1, 5.2]]])
+    pass_nested_list([[[1.1, 5.2], []], []])
 
     fail_nested_list([1])
