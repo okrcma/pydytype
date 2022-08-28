@@ -124,12 +124,12 @@ def _check_type_list(varvalue, vartype):
 
     args = vartype.__args__
     if len(args) != 1:
-        raise TypeCheckError(f"Type has incorrect number of args ({args}).")
+        return False
+
     inner_type = args[0]
     for inner_value in varvalue:
-        result = check_type(inner_value, inner_type)
-        if not result:
-            return result
+        if not check_type(inner_value, inner_type):
+            return False
     return True
 
 
@@ -139,16 +139,37 @@ def _check_type_set(varvalue, vartype):
 
     args = vartype.__args__
     if len(args) != 1:
-        raise TypeCheckError(f"Type has incorrect number of args ({args}).")
+        return False
+
     inner_type = args[0]
     for inner_value in varvalue:
-        result = check_type(inner_value, inner_type)
-        if not result:
-            return result
+        if not check_type(inner_value, inner_type):
+            return False
     return True
 
 
-_type_checker_map = {list: _check_type_list, set: _check_type_set}
+def _check_type_dict(varvalue, vartype):
+    if not isinstance(varvalue, dict):
+        return False
+
+    args = vartype.__args__
+    if len(args) != 2:
+        return False
+
+    key_type, value_type = args
+    for key_value, value_value in varvalue.items():
+        if not check_type(key_value, key_type) or not check_type(
+            value_value, value_type
+        ):
+            return False
+    return True
+
+
+_type_checker_map = {
+    list: _check_type_list,
+    set: _check_type_set,
+    dict: _check_type_dict,
+}
 
 if __name__ == "__main__":
     import runpy
